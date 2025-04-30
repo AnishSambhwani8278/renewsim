@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Renewable Energy Simulator | Sustainable Power Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #4f46e5;
+            --secondary: #10b981;
+            --accent: #f59e0b;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+        }
+
+        .energy-card {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .energy-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .solar-card {
+            border-bottom: 4px solid #f6d05a;
+        }
+
+        .wind-card {
+            border-bottom: 4px solid #5ac8f6;
+        }
+
+        .hydro-card {
+            border-bottom: 4px solid #007aff;
+        }
+
+        .geo-card {
+            border-bottom: 4px solid #34c759;
+        }
+
+        .battery-card {
+            border-bottom: 4px solid #ff9500;
+        }
+
+        .consumption-card {
+            border-bottom: 4px solid #ff2d55;
+        }
+
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: white;
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .active-nav::after {
+            width: 100%;
+        }
+
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .test-case {
+            transition: all 0.3s ease;
+        }
+
+        .test-case:hover {
+            background-color: #f1f5f9;
+            transform: translateX(5px);
+        }
+
+        /* Only keep the initial fade-in animation */
+        .initial-fade-in {
+            animation: fadeIn 1.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <nav class="gradient-bg text-white shadow-lg fixed w-full z-50">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-bolt text-yellow-300 text-2xl"></i>
+                <span class="text-xl font-bold">RenewSim</span>
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a class="nav-link active-nav hover:text-yellow-200 transition" href="#dashboard">Dashboard</a>
+                <a class="nav-link hover:text-yellow-200 transition" href="#documentation">Documentation</a>
+                <a class="nav-link hover:text-yellow-200 transition" href="#about">About</a>
+            </div>
+            <button class="md:hidden text-white focus:outline-none" id="mobileMenuButton">
+                <i class="fas fa-bars text-2xl"></i>
+            </button>
+        </div>
+        <div class="hidden md:hidden bg-indigo-900 px-4 py-2" id="mobileMenu">
+            <div class="flex flex-col space-y-3">
+                <a class="text-white hover:text-yellow-200 transition" href="#dashboard">Dashboard</a>
+                <a class="text-white hover:text-yellow-200 transition" href="#documentation">Documentation</a>
+                <a class="text-white hover:text-yellow-200 transition" href="#about">About</a>
+            </div>
+        </div>
+    </nav>
+    <main class="initial-fade-in">
+        <section class="section" id="dashboard">
+            <div class="container mx-auto px-4 py-8">
+                <h1 class="text-4xl font-bold text-gray-800 mb-2 mt-20 text-center">Renewable Energy Simulator</h1>
+                <p class="text-gray-600 text-center mb-12 max-w-2xl mx-auto">Explore how different environmental
+                    conditions and configurations affect renewable energy systems</p>
+                <div class="flex flex-col lg:flex-row gap-8">
+                    <div class="lg:w-1/3 bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-6">Simulation Controls</h2>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2">Location</label>
+                            <select
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
+                                id="locationSelect">
+                                <option value="desert">Sunny Valley (Desert)</option>
+                                <option value="plains">Windy Plains</option>
+                                <option value="mountain">Mountain River</option>
+                                <option value="volcanic">Volcanic Highlands</option>
+                                <option value="coastal">Coastal Region</option>
+                            </select>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2">Weather Conditions</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button
+                                    class="weather-btn p-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition active"
+                                    id="sunnyBtn">
+                                    <i class="fas fa-sun text-xl"></i>
+                                    <span class="block text-xs mt-1">Sunny</span>
+                                </button>
+                                <button
+                                    class="weather-btn p-2 rounded-lg bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100 transition"
+                                    id="cloudyBtn">
+                                    <i class="fas fa-cloud text-xl"></i>
+                                    <span class="block text-xs mt-1">Cloudy</span>
+                                </button>
+                                <button
+                                    class="weather-btn p-2 rounded-lg bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200 transition"
+                                    id="windyBtn">
+                                    <i class="fas fa-wind text-xl"></i>
+                                    <span class="block text-xs mt-1">Windy</span>
+                                </button>
+                                <button
+                                    class="weather-btn p-2 rounded-lg bg-gray-200 text-gray-700 border border-gray-400 hover:bg-gray-300 transition"
+                                    id="rainyBtn">
+                                    <i class="fas fa-cloud-rain text-xl"></i>
+                                    <span class="block text-xs mt-1">Rainy</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2">Energy Sources</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center space-x-3">
+                                    <input checked=""
+                                        class="source-toggle form-checkbox h-5 w-5 text-yellow-500 rounded"
+                                        data-source="solar" type="checkbox" />
+                                    <span class="text-gray-700">Solar Power</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input checked="" class="source-toggle form-checkbox h-5 w-5 text-blue-400 rounded"
+                                        data-source="wind" type="checkbox" />
+                                    <span class="text-gray-700">Wind Power</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input class="source-toggle form-checkbox h-5 w-5 text-blue-600 rounded"
+                                        data-source="hydro" type="checkbox" />
+                                    <span class="text-gray-700">Hydro Power</span>
+                                </label>
+                                <label class="flex items-center space-x-3">
+                                    <input class="source-toggle form-checkbox h-5 w-5 text-green-500 rounded"
+                                        data-source="geo" type="checkbox" />
+                                    <span class="text-gray-700">Geothermal</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2">Energy Demand: <span
+                                    class="text-indigo-600" id="demandValue">Medium</span></label>
+                            <input class="w-full slider-thumb" id="demandSlider" max="3" min="1" type="range"
+                                value="2" />
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>Low</span>
+                                <span>Medium</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 font-medium mb-2">Storage Capacity: <span
+                                    class="text-orange-500" id="storageValue">50%</span></label>
+                            <input class="w-full slider-thumb" id="storageSlider" max="100" min="0" type="range"
+                                value="50" />
+                        </div>
+                        <div class="flex space-x-3">
+                            <button
+                                class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg font-medium transition flex items-center justify-center"
+                                id="runSimulation">
+                                <i class="fas fa-play mr-2"></i> Run Simulation
+                            </button>
+                            <button
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium transition"
+                                id="resetSimulation">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="lg:w-2/3 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="energy-card solar-card bg-white rounded-xl p-4 shadow card-hover">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500">Solar Power</p>
+                                        <h3 class="text-2xl font-bold text-gray-800">1,240 <span
+                                                class="text-sm">kW</span></h3>
+                                        <p class="text-sm text-green-500 flex items-center">
+                                            <i class="fas fa-arrow-up mr-1"></i> 12% efficiency
+                                        </p>
+                                    </div>
+                                    <div class="p-3 rounded-full bg-yellow-50 text-yellow-500">
+                                        <i class="fas fa-solar-panel text-2xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3 h-2 bg-gray-200 rounded-full">
+                                    <div class="h-2 bg-yellow-400 rounded-full solar-bar" style="width: 65%"></div>
+                                </div>
+                            </div>
+                            <div class="energy-card wind-card bg-white rounded-xl p-4 shadow card-hover">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500">Wind Power</p>
+                                        <h3 class="text-2xl font-bold text-gray-800">890 <span class="text-sm">kW</span>
+                                        </h3>
+                                        <p class="text-sm text-green-500 flex items-center">
+                                            <i class="fas fa-arrow-up mr-1"></i> 8% efficiency
+                                        </p>
+                                    </div>
+                                    <div class="p-3 rounded-full bg-blue-50 text-blue-500">
+                                        <i class="fas fa-wind text-2xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3 h-2 bg-gray-200 rounded-full">
+                                    <div class="h-2 bg-blue-400 rounded-full wind-bar" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <div class="energy-card battery-card bg-white rounded-xl p-4 shadow card-hover">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500">Energy Storage</p>
+                                        <h3 class="text-2xl font-bold text-gray-800">2,150 <span
+                                                class="text-sm">kWh</span></h3>
+                                        <p class="text-sm text-blue-500 flex items-center">
+                                            <i class="fas fa-battery-three-quarters mr-1"></i> 53% capacity
+                                        </p>
+                                    </div>
+                                    <div class="p-3 rounded-full bg-orange-50 text-orange-500">
+                                        <i class="fas fa-battery-full text-2xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3 h-2 bg-gray-200 rounded-full">
+                                    <div class="h-2 bg-orange-400 rounded-full battery-bar" style="width: 53%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="energy-card bg-white rounded-xl shadow p-6 card-hover">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-bold text-gray-800">Energy Flow Simulation</h2>
+                                <div class="flex space-x-2">
+                                    <button class="time-btn px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm"
+                                        data-time="24h">24h</button>
+                                    <button class="time-btn px-3 py-1 bg-indigo-600 text-white rounded-lg text-sm"
+                                        data-time="7d">7d</button>
+                                    <button class="time-btn px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm"
+                                        data-time="30d">30d</button>
+                                </div>
+                            </div>
+                            <canvas height="300" id="energyChart"></canvas>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="energy-card hydro-card bg-white rounded-xl p-4 shadow card-hover">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500">Hydro Power</p>
+                                        <h3 class="text-2xl font-bold text-gray-800 hydro-value">0 <span
+                                                class="text-sm">kW</span></h3>
+                                        <p class="text-sm text-gray-500 flex items-center hydro-status">
+                                            <i class="fas fa-times-circle mr-1"></i> Not active
+                                        </p>
+                                    </div>
+                                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                        <i class="fas fa-water text-2xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3 h-2 bg-gray-200 rounded-full">
+                                    <div class="h-2 bg-blue-600 rounded-full hydro-bar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="energy-card geo-card bg-white rounded-xl p-4 shadow card-hover">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500">Geothermal</p>
+                                        <h3 class="text-2xl font-bold text-gray-800 geo-value">0 <span
+                                                class="text-sm">kW</span></h3>
+                                        <p class="text-sm text-gray-500 flex items-center geo-status">
+                                            <i class="fas fa-times-circle mr-1"></i> Not active
+                                        </p>
+                                    </div>
+                                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                        <i class="fas fa-fire text-2xl"></i>
+                                    </div>
+                                </div>
+                                <div class="mt-3 h-2 bg-gray-200 rounded-full">
+                                    <div class="h-2 bg-green-500 rounded-full geo-bar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="energy-card bg-white rounded-xl p-4 shadow card-hover">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500">Current Weather</p>
+                                        <div class="flex items-center mt-1">
+                                            <i class="fas fa-sun text-yellow-400 text-3xl mr-2" id="weatherIcon"></i>
+                                            <div>
+                                                <h3 class="text-xl font-bold text-gray-800" id="weatherCondition">Sunny
+                                                </h3>
+                                                <p class="text-sm text-gray-500" id="weatherDetails">28°C, 5 km/h wind
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="energy-card bg-white rounded-xl p-4 shadow card-hover">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500">System Status</p>
+                                        <h3 class="text-xl font-bold text-green-600 mt-1" id="systemStatus">Optimal</h3>
+                                        <p class="text-sm text-gray-500" id="systemMessage">All systems normal</p>
+                                    </div>
+                                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                                        <i class="fas fa-check-circle text-2xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="energy-card consumption-card bg-white rounded-xl p-4 shadow card-hover">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-gray-500">Energy Consumption</p>
+                                        <h3 class="text-xl font-bold text-gray-800" id="consumptionValue">1,850 <span
+                                                class="text-sm">kW</span></h3>
+                                        <p class="text-sm text-gray-500" id="renewablePercentage">72% from renewables
+                                        </p>
+                                    </div>
+                                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                                        <i class="fas fa-plug text-2xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section bg-gray-50" id="documentation">
+            <div class="container mx-auto px-4 py-12">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-2">Documentation</h2>
+                <p class="text-gray-600 text-center mb-12 max-w-2xl mx-auto">Learn how to use the RenewSim energy
+                    simulation platform</p>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 rounded-full bg-indigo-100 text-indigo-600 mr-4">
+                                <i class="fas fa-book-open text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800">User Guide</h3>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-indigo-50 rounded-lg">
+                                <h4 class="font-medium text-indigo-700 mb-2">1. Setting Up the Simulation</h4>
+                                <p class="text-gray-700">Select your desired location from the dropdown menu. Each
+                                    location has different characteristics that affect energy production.</p>
+                            </div>
+                            <div class="p-4 bg-indigo-50 rounded-lg">
+                                <h4 class="font-medium text-indigo-700 mb-2">2. Adjusting Weather Conditions</h4>
+                                <p class="text-gray-700">Click on the weather icons to simulate different conditions.
+                                    Sunny weather boosts solar power, while windy conditions improve wind turbine
+                                    output.</p>
+                            </div>
+                            <div class="p-4 bg-indigo-50 rounded-lg">
+                                <h4 class="font-medium text-indigo-700 mb-2">3. Configuring Energy Sources</h4>
+                                <p class="text-gray-700">Toggle the checkboxes to activate or deactivate different
+                                    renewable energy sources. Observe how the energy mix affects overall system
+                                    performance.</p>
+                            </div>
+                            <div class="p-4 bg-indigo-50 rounded-lg">
+                                <h4 class="font-medium text-indigo-700 mb-2">4. Running the Simulation</h4>
+                                <p class="text-gray-700">Click "Run Simulation" to see how your configuration performs.
+                                    Adjust the energy demand and storage capacity sliders to see their impact.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                                <i class="fas fa-vial text-xl"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800">Test Cases</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="test-case p-4 border border-gray-200 rounded-lg cursor-pointer">
+                                <h4 class="font-medium text-gray-800 mb-1">1. Sunny Desert Scenario</h4>
+                                <p class="text-sm text-gray-600">Set location to Sunny Valley, weather to Sunny, and
+                                    activate only solar power. Observe high solar output but no wind generation.</p>
+                            </div>
+                            <div class="test-case p-4 border border-gray-200 rounded-lg cursor-pointer">
+                                <h4 class="font-medium text-gray-800 mb-1">2. Windy Coastal Scenario</h4>
+                                <p class="text-sm text-gray-600">Set location to Coastal Region, weather to Windy, and
+                                    activate only wind power. Note the consistent high wind generation.</p>
+                            </div>
+                            <div class="test-case p-4 border border-gray-200 rounded-lg cursor-pointer">
+                                <h4 class="font-medium text-gray-800 mb-1">3. Mixed Renewable Scenario</h4>
+                                <p class="text-sm text-gray-600">Activate all renewable sources with medium demand.
+                                    Observe how different sources complement each other throughout the day.</p>
+                            </div>
+                            <div class="test-case p-4 border border-gray-200 rounded-lg cursor-pointer">
+                                <h4 class="font-medium text-gray-800 mb-1">4. High Demand Stress Test</h4>
+                                <p class="text-sm text-gray-600">Set demand to High with low storage capacity. Watch how
+                                    the system struggles to meet demand during low production periods.</p>
+                            </div>
+                            <div class="test-case p-4 border border-gray-200 rounded-lg cursor-pointer">
+                                <h4 class="font-medium text-gray-800 mb-1">5. Rainy Mountain Scenario</h4>
+                                <p class="text-sm text-gray-600">Set location to Mountain River, weather to Rainy, and
+                                    activate hydro power. Note the increased hydroelectric output.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 bg-white rounded-xl shadow-md p-6 card-hover">
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+                            <i class="fas fa-cogs text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Technical Implementation</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-gray-800 mb-2">Energy Production Algorithms</h4>
+                            <p class="text-gray-700">The simulation uses realistic models for each energy source:</p>
+                            <ul class="list-disc pl-5 mt-2 space-y-1 text-gray-700">
+                                <li>Solar: Based on sun position, weather, and panel efficiency</li>
+                                <li>Wind: Calculated from wind speed and turbine specs</li>
+                                <li>Hydro: Dependent on water flow rate and head height</li>
+                                <li>Geothermal: Constant base load with small variations</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-800 mb-2">Storage Simulation</h4>
+                            <p class="text-gray-700">The battery system follows these rules:</p>
+                            <ul class="list-disc pl-5 mt-2 space-y-1 text-gray-700">
+                                <li>Charges when production exceeds demand</li>
+                                <li>Discharges to cover deficits when production is low</li>
+                                <li>Has efficiency losses during charge/discharge cycles</li>
+                                <li>Capacity affects how much energy can be stored for later use</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section class="section bg-gradient-to-br from-indigo-50 to-blue-50" id="about">
+            <div class="container mx-auto px-4 py-12">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-2">About RenewSim</h2>
+                <p class="text-gray-600 text-center mb-12 max-w-2xl mx-auto">Learn about the platform and its creator
+                </p>
+                <div class="flex flex-col lg:flex-row items-center gap-8">
+                    <div class="lg:w-1/2 bg-white rounded-xl shadow-md p-8 card-hover">
+                        <div class="flex flex-col items-center text-center pt-20 pb-20">
+                            <div class="w-32 h-32 rounded-full bg-indigo-100 mb-4 overflow-hidden shadow-lg">
+                                <img alt="Creator" class="w-full h-full object-cover"
+                                    src="https://icons.veryicon.com/png/o/internet--web/flatten-icon/businessman-1.png" />
+                            </div>
+                            <h3 class="text-2xl font-bold text-gray-800">Anish Sambhwani</h3>
+                            <p class="text-indigo-600 font-medium">Software Engineer</p>
+                            <div class="mt-4 flex space-x-4">
+                                <a class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center hover:bg-indigo-200 transition"
+                                    href="#">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center hover:bg-indigo-200 transition"
+                                    href="#">
+                                    <i class="fab fa-linkedin"></i>
+                                </a>
+                                <a class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center hover:bg-indigo-200 transition"
+                                    href="#">
+                                    <i class="fab fa-github"></i>
+                                </a>
+                                <a class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center hover:bg-indigo-200 transition"
+                                    href="#">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            </div>
+                            <p class="mt-6 text-gray-700">
+                                I'm Anish Sambhwani, a passionate Frontend Developer and Java Desktop Application
+                                Specialist with 1 year of professional experience. I specialize in creating beautiful,
+                                responsive web interfaces using modern technologies like React, and robust desktop
+                                applications using Java Swing and AWT.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="lg:w-1/2 space-y-6">
+                        <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                            <div class="flex items-center mb-4">
+                                <div class="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
+                                    <i class="fas fa-lightbulb text-xl"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800">Project Vision</h3>
+                            </div>
+                            <p class="text-gray-700">
+                                RenewSim was created to help students, educators, and energy enthusiasts understand the
+                                complex
+                                interactions between different renewable energy sources and consumption patterns. Our
+                                goal is to
+                                make energy system modeling accessible to everyone.
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                            <div class="flex items-center mb-4">
+                                <div class="p-3 rounded-full bg-green-100 text-green-600 mr-4">
+                                    <i class="fas fa-leaf text-xl"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800">Sustainability Mission</h3>
+                            </div>
+                            <p class="text-gray-700">
+                                We believe that understanding energy systems is the first step toward creating a
+                                sustainable future.
+                                By visualizing how renewable energy works, we hope to inspire more people to support and
+                                invest in
+                                clean energy solutions.
+                            </p>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6 card-hover">
+                            <div class="flex items-center mb-4">
+                                <div class="p-3 rounded-full bg-purple-100 text-purple-600 mr-4">
+                                    <i class="fas fa-code-branch text-xl"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-gray-800">Technology Stack</h3>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm">HTML5</span>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">CSS3</span>
+                                <span
+                                    class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">JavaScript</span>
+                                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Chart.js</span>
+                                <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">GSAP</span>
+                                <span class="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">Tailwind
+                                    CSS</span>
+                                <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm">Font Awesome</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fas fa-bolt text-yellow-300 text-xl"></i>
+                        <span class="text-lg font-bold">RenewSim</span>
+                    </div>
+                    <p class="text-blue-100 mt-1">Sustainable Energy Simulation Platform</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a class="hover:text-yellow-200 transition" href="#"><i class="fab fa-twitter"></i></a>
+                    <a class="hover:text-yellow-200 transition" href="#"><i class="fab fa-github"></i></a>
+                    <a class="hover:text-yellow-200 transition" href="#"><i class="fab fa-linkedin"></i></a>
+                    <a class="hover:text-yellow-200 transition" href="#"><i class="fas fa-envelope"></i></a>
+                </div>
+            </div>
+            <div class="border-t border-blue-400 mt-6 pt-6 text-sm text-blue-100 text-center">
+                <p>© 2025 RenewSim Energy Simulation. All rights reserved. | Designed for educational purposes</p>
+            </div>
+        </div>
+    </footer>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            mobileMenuButton.addEventListener('click', function () {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        link.classList.remove('active-nav');
+                    });
+                    this.classList.add('active-nav');
+
+
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        window.scrollTo({
+                            top: target.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+
+
+                        if (!mobileMenu.classList.contains('hidden')) {
+                            mobileMenu.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+
+
+            window.addEventListener('scroll', function () {
+                const sections = document.querySelectorAll('section');
+                let currentSection = '';
+
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 100;
+                    if (pageYOffset >= sectionTop) {
+                        currentSection = section.getAttribute('id');
+                    }
+                });
+
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.classList.remove('active-nav');
+                    if (link.getAttribute('href') === `#${currentSection}`) {
+                        link.classList.add('active-nav');
+                    }
+                });
+            });
+
+
+            const ctx = document.getElementById('energyChart').getContext('2d');
+            const energyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'],
+                    datasets: [
+                        {
+                            label: 'Solar Generation',
+                            data: [0, 0, 50, 300, 800, 700, 200, 0],
+                            borderColor: '#f6d05a',
+                            backgroundColor: 'rgba(246, 208, 90, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Wind Generation',
+                            data: [120, 150, 180, 200, 190, 210, 230, 180],
+                            borderColor: '#5ac8f6',
+                            backgroundColor: 'rgba(90, 200, 246, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Energy Consumption',
+                            data: [400, 380, 420, 600, 750, 800, 850, 700],
+                            borderColor: '#ff2d55',
+                            backgroundColor: 'rgba(255, 45, 85, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Battery Storage',
+                            data: [1200, 1100, 1000, 900, 800, 950, 1100, 1200],
+                            borderColor: '#ff9500',
+                            backgroundColor: 'rgba(255, 149, 0, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Power (kW) / Storage (kWh)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+
+
+            const demandSlider = document.getElementById('demandSlider');
+            const demandValue = document.getElementById('demandValue');
+            const storageSlider = document.getElementById('storageSlider');
+            const storageValue = document.getElementById('storageValue');
+
+            demandSlider.addEventListener('input', function () {
+                const values = ['Low', 'Medium', 'High'];
+                demandValue.textContent = values[this.value - 1];
+                updateConsumption();
+            });
+
+            storageSlider.addEventListener('input', function () {
+                storageValue.textContent = `${this.value}%`;
+                updateBattery();
+            });
+
+
+            const weatherButtons = document.querySelectorAll('.weather-btn');
+            let currentWeather = 'sunny';
+
+            weatherButtons.forEach(button => {
+                button.addEventListener('click', function () {
+
+                    weatherButtons.forEach(btn => btn.classList.remove('active'));
+
+
+                    this.classList.add('active');
+
+
+                    if (this.id === 'sunnyBtn') {
+                        currentWeather = 'sunny';
+                        updateWeather('sun', 'Sunny', '28°C, 5 km/h wind');
+                        updateSolarOutput(1.0);
+                    } else if (this.id === 'cloudyBtn') {
+                        currentWeather = 'cloudy';
+                        updateWeather('cloud', 'Cloudy', '22°C, 3 km/h wind');
+                        updateSolarOutput(0.4);
+                    } else if (this.id === 'windyBtn') {
+                        currentWeather = 'windy';
+                        updateWeather('wind', 'Windy', '20°C, 25 km/h wind');
+                        updateWindOutput(1.5);
+                    } else if (this.id === 'rainyBtn') {
+                        currentWeather = 'rainy';
+                        updateWeather('cloud-rain', 'Rainy', '18°C, 10 km/h wind');
+                        updateHydroOutput(1.2);
+                    }
+                });
+            });
+
+            function updateWeather(icon, condition, details) {
+                const weatherIcon = document.getElementById('weatherIcon');
+                const weatherCondition = document.getElementById('weatherCondition');
+                const weatherDetails = document.getElementById('weatherDetails');
+
+                weatherIcon.className = `fas fa-${icon} text-3xl mr-2`;
+                if (icon === 'sun') weatherIcon.classList.add('text-yellow-400');
+                if (icon === 'cloud') weatherIcon.classList.add('text-gray-400');
+                if (icon === 'wind') weatherIcon.classList.add('text-blue-300');
+                if (icon === 'cloud-rain') weatherIcon.classList.add('text-blue-400');
+
+                weatherCondition.textContent = condition;
+                weatherDetails.textContent = details;
+            }
+
+            function updateSolarOutput(factor) {
+                const solarValue = document.querySelector('.solar-card h3');
+                const solarEfficiency = document.querySelector('.solar-card p.text-sm');
+                const solarBar = document.querySelector('.solar-bar');
+
+                const baseValue = 1240;
+                const newValue = Math.round(baseValue * factor);
+                const efficiency = Math.round(12 * factor);
+
+                solarValue.textContent = `${newValue} kW`;
+                solarEfficiency.innerHTML = `<i class="fas fa-arrow-up mr-1"></i> ${efficiency}% efficiency`;
+                solarBar.style.width = `${65 * factor}%`;
+
+
+                if (energyChart.data.datasets[0].hidden) return;
+
+                const newData = [0, 0, 50, 300, 800, 700, 200, 0].map(val => Math.round(val * factor));
+                energyChart.data.datasets[0].data = newData;
+                energyChart.update();
+            }
+
+            function updateWindOutput(factor) {
+                const windValue = document.querySelector('.wind-card h3');
+                const windEfficiency = document.querySelector('.wind-card p.text-sm');
+                const windBar = document.querySelector('.wind-bar');
+
+                const baseValue = 890;
+                const newValue = Math.round(baseValue * factor);
+                const efficiency = Math.round(8 * factor);
+
+                windValue.textContent = `${newValue} kW`;
+                windEfficiency.innerHTML = `<i class="fas fa-arrow-up mr-1"></i> ${efficiency}% efficiency`;
+                windBar.style.width = `${45 * factor}%`;
+
+
+                if (energyChart.data.datasets[1].hidden) return;
+
+                const newData = [120, 150, 180, 200, 190, 210, 230, 180].map(val => Math.round(val * factor));
+                energyChart.data.datasets[1].data = newData;
+                energyChart.update();
+            }
+
+            function updateHydroOutput(factor) {
+                const hydroCheckbox = document.querySelector('.source-toggle[data-source="hydro"]');
+                if (!hydroCheckbox.checked) return;
+
+                const hydroValue = document.querySelector('.hydro-value');
+                const hydroStatus = document.querySelector('.hydro-status');
+                const hydroBar = document.querySelector('.hydro-bar');
+
+                const baseValue = 500;
+                const newValue = Math.round(baseValue * factor);
+
+                hydroValue.textContent = `${newValue} kW`;
+                hydroStatus.innerHTML = `<i class="fas fa-arrow-up mr-1"></i> ${Math.round(15 * factor)}% efficiency`;
+                hydroStatus.className = 'text-sm text-green-500 flex items-center hydro-status';
+                hydroBar.style.width = `${30 * factor}%`;
+            }
+
+            function updateConsumption() {
+                const demand = demandSlider.value;
+                let consumption = 1850;
+                let renewablePercent = 72;
+
+                if (demand == 1) {
+                    consumption = 1200;
+                    renewablePercent = 85;
+                } else if (demand == 3) {
+                    consumption = 2500;
+                    renewablePercent = 60;
+                }
+
+                document.getElementById('consumptionValue').textContent = consumption;
+                document.getElementById('renewablePercentage').textContent = `${renewablePercent}% from renewables`;
+
+
+                const newData = [400, 380, 420, 600, 750, 800, 850, 700].map(val => {
+                    if (demand == 1) return Math.round(val * 0.65);
+                    if (demand == 3) return Math.round(val * 1.3);
+                    return val;
+                });
+
+                energyChart.data.datasets[2].data = newData;
+                energyChart.update();
+            }
+
+            function updateBattery() {
+                const capacity = storageSlider.value;
+                const batteryValue = document.querySelector('.battery-card h3');
+                const batteryStatus = document.querySelector('.battery-card p.text-sm');
+                const batteryBar = document.querySelector('.battery-bar');
+
+                const baseValue = 4300;
+                const newValue = Math.round(baseValue * (capacity / 100));
+
+                batteryValue.textContent = `${newValue} kWh`;
+                batteryStatus.innerHTML = `<i class="fas fa-battery-three-quarters mr-1"></i> ${capacity}% capacity`;
+                batteryBar.style.width = `${capacity}%`;
+
+
+                const newData = [1200, 1100, 1000, 900, 800, 950, 1100, 1200].map(val => {
+                    return Math.round(val * (capacity / 50));
+                });
+
+                energyChart.data.datasets[3].data = newData;
+                energyChart.update();
+            }
+
+
+            const timeButtons = document.querySelectorAll('.time-btn');
+
+            timeButtons.forEach(button => {
+                button.addEventListener('click', function () {
+
+                    timeButtons.forEach(btn => btn.classList.remove('bg-indigo-600', 'text-white'));
+
+
+                    this.classList.add('bg-indigo-600', 'text-white');
+
+
+                    const period = this.dataset.time;
+                    let labels = [];
+
+                    if (period === '24h') {
+                        labels = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
+                    } else if (period === '7d') {
+                        labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                    } else if (period === '30d') {
+                        labels = [];
+                        for (let i = 1; i <= 30; i += 4) {
+                            labels.push(`Day ${i}`);
+                        }
+                    }
+
+                    energyChart.data.labels = labels;
+                    energyChart.update();
+                });
+            });
+
+
+            const runSimulation = document.getElementById('runSimulation');
+            const resetSimulation = document.getElementById('resetSimulation');
+
+            runSimulation.addEventListener('click', function () {
+
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Simulating...';
+                this.classList.add('opacity-75');
+
+
+                document.getElementById('systemStatus').textContent = 'Simulating';
+                document.getElementById('systemStatus').className = 'text-xl font-bold text-blue-600 mt-1';
+                document.getElementById('systemMessage').textContent = 'Processing energy data...';
+
+
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-check mr-2"></i> Simulation Complete';
+                    this.classList.remove('opacity-75');
+                    this.classList.add('bg-green-600', 'hover:bg-green-700');
+
+
+                    document.getElementById('systemStatus').textContent = 'Optimal';
+                    document.getElementById('systemStatus').className = 'text-xl font-bold text-green-600 mt-1';
+                    document.getElementById('systemMessage').textContent = 'All systems normal';
+
+
+                    const solarFactor = currentWeather === 'sunny' ? 1.0 : currentWeather === 'cloudy' ? 0.4 : 0.7;
+                    const windFactor = currentWeather === 'windy' ? 1.5 : 1.0;
+
+                    energyChart.data.datasets[0].data = [0, 0, 60, 350, 850, 720, 220, 0].map(val => Math.round(val * solarFactor));
+                    energyChart.data.datasets[1].data = [130, 160, 190, 210, 200, 220, 240, 190].map(val => Math.round(val * windFactor));
+
+                    const demandFactor = demandSlider.value == 1 ? 0.65 : demandSlider.value == 3 ? 1.3 : 1.0;
+                    energyChart.data.datasets[2].data = [450, 400, 450, 650, 800, 850, 900, 750].map(val => Math.round(val * demandFactor));
+
+                    const storageFactor = storageSlider.value / 50;
+                    energyChart.data.datasets[3].data = [1100, 1000, 900, 800, 700, 850, 1000, 1100].map(val => Math.round(val * storageFactor));
+
+                    energyChart.update();
+
+
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-play mr-2"></i> Run Simulation';
+                        this.classList.remove('bg-green-600', 'hover:bg-green-700');
+                        this.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+                    }, 3000);
+                }, 2000);
+            });
+
+            resetSimulation.addEventListener('click', function () {
+
+                document.getElementById('locationSelect').value = 'desert';
+
+
+                weatherButtons.forEach(btn => btn.classList.remove('active'));
+                document.getElementById('sunnyBtn').classList.add('active');
+                updateWeather('sun', 'Sunny', '28°C, 5 km/h wind');
+                updateSolarOutput(1.0);
+                updateWindOutput(1.0);
+
+
+                document.querySelectorAll('.source-toggle').forEach((checkbox, index) => {
+                    checkbox.checked = index < 2;
+                });
+
+
+                demandSlider.value = 2;
+                demandValue.textContent = 'Medium';
+                storageSlider.value = 50;
+                storageValue.textContent = '50%';
+
+
+                energyChart.data.datasets[0].data = [0, 0, 50, 300, 800, 700, 200, 0];
+                energyChart.data.datasets[1].data = [120, 150, 180, 200, 190, 210, 230, 180];
+                energyChart.data.datasets[2].data = [400, 380, 420, 600, 750, 800, 850, 700];
+                energyChart.data.datasets[3].data = [1200, 1100, 1000, 900, 800, 950, 1100, 1200];
+                energyChart.update();
+
+
+                updateConsumption();
+                updateBattery();
+
+
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-check mr-1"></i> Reset Complete';
+
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                }, 2000);
+            });
+
+
+            const checkboxes = document.querySelectorAll('.source-toggle');
+
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function () {
+                    const source = this.dataset.source;
+                    const card = document.querySelector(`.${source}-card`);
+
+                    if (!card) return;
+
+                    if (this.checked) {
+                        if (source === 'solar') {
+                            card.querySelector('h3').textContent = '1,240 kW';
+                            card.querySelector('p.text-sm').innerHTML = '<i class="fas fa-arrow-up mr-1"></i> 12% efficiency';
+                            card.querySelector('p.text-sm').className = 'text-sm text-green-500 flex items-center';
+                            card.querySelector('.solar-bar').style.width = '65%';
+
+
+                            energyChart.data.datasets[0].hidden = false;
+                        } else if (source === 'wind') {
+                            card.querySelector('h3').textContent = '890 kW';
+                            card.querySelector('p.text-sm').innerHTML = '<i class="fas fa-arrow-up mr-1"></i> 8% efficiency';
+                            card.querySelector('p.text-sm').className = 'text-sm text-green-500 flex items-center';
+                            card.querySelector('.wind-bar').style.width = '45%';
+
+
+                            energyChart.data.datasets[1].hidden = false;
+                        } else if (source === 'hydro') {
+                            card.querySelector('.hydro-value').textContent = '500 kW';
+                            card.querySelector('.hydro-status').innerHTML = '<i class="fas fa-arrow-up mr-1"></i> 15% efficiency';
+                            card.querySelector('.hydro-status').className = 'text-sm text-green-500 flex items-center hydro-status';
+                            card.querySelector('.hydro-bar').style.width = '30%';
+                        } else if (source === 'geo') {
+                            card.querySelector('.geo-value').textContent = '400 kW';
+                            card.querySelector('.geo-status').innerHTML = '<i class="fas fa-arrow-up mr-1"></i> 10% efficiency';
+                            card.querySelector('.geo-status').className = 'text-sm text-green-500 flex items-center geo-status';
+                            card.querySelector('.geo-bar').style.width = '25%';
+                        }
+                    } else {
+                        if (source === 'solar') {
+                            card.querySelector('h3').textContent = '0 kW';
+                            card.querySelector('p.text-sm').innerHTML = '<i class="fas fa-times-circle mr-1"></i> Not active';
+                            card.querySelector('p.text-sm').className = 'text-sm text-gray-500 flex items-center';
+                            card.querySelector('.solar-bar').style.width = '0%';
+
+
+                            energyChart.data.datasets[0].hidden = true;
+                        } else if (source === 'wind') {
+                            card.querySelector('h3').textContent = '0 kW';
+                            card.querySelector('p.text-sm').innerHTML = '<i class="fas fa-times-circle mr-1"></i> Not active';
+                            card.querySelector('p.text-sm').className = 'text-sm text-gray-500 flex items-center';
+                            card.querySelector('.wind-bar').style.width = '0%';
+
+
+                            energyChart.data.datasets[1].hidden = true;
+                        } else if (source === 'hydro') {
+                            card.querySelector('.hydro-value').textContent = '0 kW';
+                            card.querySelector('.hydro-status').innerHTML = '<i class="fas fa-times-circle mr-1"></i> Not active';
+                            card.querySelector('.hydro-status').className = 'text-sm text-gray-500 flex items-center hydro-status';
+                            card.querySelector('.hydro-bar').style.width = '0%';
+                        } else if (source === 'geo') {
+                            card.querySelector('.geo-value').textContent = '0 kW';
+                            card.querySelector('.geo-status').innerHTML = '<i class="fas fa-times-circle mr-1"></i> Not active';
+                            card.querySelector('.geo-status').className = 'text-sm text-gray-500 flex items-center geo-status';
+                            card.querySelector('.geo-bar').style.width = '0%';
+                        }
+                    }
+
+                    energyChart.update();
+                    updateRenewablePercentage();
+                });
+            });
+
+            function updateRenewablePercentage() {
+
+                let percentage = 72;
+                const solarActive = document.querySelector('.source-toggle[data-source="solar"]').checked;
+                const windActive = document.querySelector('.source-toggle[data-source="wind"]').checked;
+                const hydroActive = document.querySelector('.source-toggle[data-source="hydro"]').checked;
+                const geoActive = document.querySelector('.source-toggle[data-source="geo"]').checked;
+
+                if (!solarActive) percentage -= 30;
+                if (!windActive) percentage -= 25;
+                if (hydroActive) percentage += 15;
+                if (geoActive) percentage += 10;
+
+
+                percentage = Math.max(0, Math.min(100, percentage));
+
+                document.getElementById('renewablePercentage').textContent = `${percentage}% from renewables`;
+            }
+
+
+            document.getElementById('locationSelect').addEventListener('change', function () {
+                const location = this.value;
+                let weather = 'sunny';
+                let weatherText = '';
+
+
+                if (location === 'desert') {
+                    weather = 'sunny';
+                    weatherText = 'Sunny';
+                    document.getElementById('sunnyBtn').click();
+                } else if (location === 'plains') {
+                    weather = 'windy';
+                    weatherText = 'Windy';
+                    document.getElementById('windyBtn').click();
+                } else if (location === 'mountain') {
+                    weather = 'rainy';
+                    weatherText = 'Rainy';
+                    document.getElementById('rainyBtn').click();
+                } else if (location === 'volcanic') {
+                    weather = 'cloudy';
+                    weatherText = 'Cloudy';
+                    document.getElementById('cloudyBtn').click();
+                } else if (location === 'coastal') {
+                    weather = 'windy';
+                    weatherText = 'Windy';
+                    document.getElementById('windyBtn').click();
+                }
+
+
+                document.getElementById('systemMessage').textContent = `Location set to ${this.options[this.selectedIndex].text}`;
+            });
+
+
+            document.getElementById('sunnyBtn').classList.add('active');
+        });
+    </script>
+</body>
+
+</html>
